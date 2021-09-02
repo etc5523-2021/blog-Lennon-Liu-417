@@ -1,0 +1,33 @@
+{
+  "articles": [
+    {
+      "path": "about.html",
+      "title": "About this blog",
+      "description": "Some additional details about the blog",
+      "author": [],
+      "contents": "\n\n\n\n",
+      "last_modified": "2021-09-02T23:04:53+08:00"
+    },
+    {
+      "path": "blog.html",
+      "title": "My Blog",
+      "author": [],
+      "contents": "\n\n\n\n",
+      "last_modified": "2021-09-02T23:04:54+08:00"
+    },
+    {
+      "path": "index.html",
+      "title": "ETC5523 Assignment",
+      "author": [
+        {
+          "name": "Yalong Liu",
+          "url": {}
+        }
+      ],
+      "date": "`r Sys.Date()`",
+      "contents": "\n\n\n\n",
+      "last_modified": "2021-09-02T23:04:54+08:00"
+    }
+  ],
+  "collections": ["posts/posts.json"]
+}

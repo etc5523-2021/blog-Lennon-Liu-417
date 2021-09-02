@@ -1,0 +1,7 @@
+---
+title: "ETC5523 Assignment"
+site: distill::distill_website
+author:
+  - name: Yalong Liu
+date:  "`r Sys.Date()`"
+---
