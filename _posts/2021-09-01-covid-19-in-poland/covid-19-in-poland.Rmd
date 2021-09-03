@@ -199,6 +199,8 @@ Yihui Xie, Joe Cheng and Xianying Tan (2021). DT: A Wrapper of the JavaScript Li
 
 Ramnath Vaidyanathan, Kent Russell and Gareth Watts (2016). sparkline: 'jQuery' Sparkline 'htmlwidget'. R package version 2.0. https://CRAN.R-project.org/package=sparkline
 
+Richard Iannone, Joe Cheng and Barret Schloerke (2021). gt: Easily Create Presentation-Ready Display Tables. R package version 0.3.1. https://CRAN.R-project.org/package=gt
+
 WHO COVID-19 Dashboard. Geneva: World Health Organization, 2020. Available online: https://covid19.who.int/ 
 
 Hannah Ritchie, Edouard Mathieu, Lucas Rodés-Guirao, Cameron Appel, Charlie Giattino, Esteban Ortiz-Ospina, Joe Hasell, Bobbie Macdonald, Diana Beltekian and Max Roser (2020) - "Coronavirus Pandemic (COVID-19)". Published online at OurWorldInData.org. Retrieved from: 'https://ourworldindata.org/coronavirus' [Online Resource]
