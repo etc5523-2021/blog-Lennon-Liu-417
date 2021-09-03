@@ -1,6 +1,6 @@
 ---
 title: "Yalong(Lennon) Liu"
-image: "https://github.com/etc5523-2021/blog-Lennon-Liu-417/blob/main/image/pexels-md-abdul-halim-2333293.jpg"
+image: "image/pexels-md-abdul-halim-2333293.jpg"
 output:
   postcards::trestles
 links:

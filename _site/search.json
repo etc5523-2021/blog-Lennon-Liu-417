@@ -5,14 +5,14 @@
       "title": "Yalong(Lennon) Liu",
       "author": [],
       "contents": "\n\n          \n          \n          Yalong Liu\n          \n          \n          Home\n          Blog\n          About\n          ☰\n          \n          \n      \n        \n          \n            \n              \n            \n              Yalong(Lennon) Liu\n            \n            \n              \n                \n                    \n                      \n                        GitHub\n                      \n                    \n                  \n                                    \n                    \n                      \n                        Email\n                      \n                    \n                  \n                                  \n            \n          \n        \n        \n        \n          \n            \n          \n        \n      \n    \n\n    \n      \n        \n          \n            \n              \n            \n              Yalong(Lennon) Liu\n            \n            \n              \n                \n                                    \n                    \n                      GitHub\n                    \n                  \n                                    \n                    \n                      Email\n                    \n                  \n                                  \n              \n            \n            \n              \n            \n        \n      \n    \n\n    \n    \n    ",
-      "last_modified": "2021-09-03T16:34:03+08:00"
+      "last_modified": "2021-09-03T16:47:14+08:00"
     },
     {
       "path": "blog.html",
       "title": "My Blog",
       "author": [],
       "contents": "\n\n\n\n",
-      "last_modified": "2021-09-03T16:34:03+08:00"
+      "last_modified": "2021-09-03T16:47:14+08:00"
     },
     {
       "path": "index.html",
@@ -25,7 +25,7 @@
       ],
       "date": "`r Sys.Date()`",
       "contents": "\n\n\n\n",
-      "last_modified": "2021-09-03T16:34:04+08:00"
+      "last_modified": "2021-09-03T16:47:15+08:00"
     }
   ],
   "collections": ["posts/posts.json"]
