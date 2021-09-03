@@ -1,16 +1,16 @@
 # My Blog
 
 
-This is the blog of [FILL].
-The URL of this blog is [FILL].
+This is the blog of [Yalong Liu].
+The URL of this blog is [https://yalongliu.netlify.app].
 
 ## Blog Post 1
 
 This assessment is due Fri Sep 3 2021 11.55PM AEST.
 
-My selected country is [FILL].
+My selected country is [Poland].
 
-The relevant blog post for this assessment is in [FILL].html
+The relevant blog post for this assessment is in [covid-19-in-poland].html
 
 - [ ] Selected a country
 - [ ] Website with R markdown 

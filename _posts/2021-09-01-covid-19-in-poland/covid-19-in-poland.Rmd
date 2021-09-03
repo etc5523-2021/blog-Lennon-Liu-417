@@ -4,7 +4,7 @@ description: |
   This blog focuses on the situation of COVID-19 in Poland as of August 31, 2021.
 author:
   - name: Yalong Liu
-    url: https://example.com/norajones
+    url: https://yalongliu.netlify.app/about.html
 date: 09-01-2021
 output:
   distill::distill_article:
