@@ -1,7 +1,7 @@
 ---
 title: "COVID-19 in Poland"
 description: |
-  A short description of the post.
+  This blog focuses on the situation of COVID-19 in Poland as of August 31, 2021.
 author:
   - name: Yalong Liu
     url: https://example.com/norajones
@@ -19,6 +19,7 @@ library(lubridate)
 library(kableExtra)
 library(DT)
 library(sparkline)
+library(gt)
 ```
 
 
@@ -38,7 +39,11 @@ covid_tidy <- covid_raw %>%
            people_fully_vaccinated_per_hundred))
 ```
 
+Source of the Data: This report use one COVID-19 data from [Our World in Data](https://ourworldindata.org/coronavirus/country/poland).
 
+The raw data contains **62** variables, including daily number of COVID-19 cases, deaths and vaccine utilisation recorded by countries. This blog uses Poland as the research object to explore the infection and death of the new coronavirus in Poland, as well as the subsequent vaccination situation. The research timeline is from the first infection at **`r covid_tidy$date[1]`** to **`r covid_tidy$date[546]`**. The details of data is shown below:
+
+Data Dictionary:
 
 ```{r}
 desc <- data.frame(Variable = names(covid_tidy),
@@ -58,9 +63,7 @@ desc <- data.frame(Variable = names(covid_tidy),
 
 # Analysis and Exploration
 
-
-
-## COVID-19 Cases in Poland
+Firstly, we see the last situation of COVID-19 cases and deaths at **`r covid_tidy$date[546]`** in Poland. The percentage of infections per million people is **7.64%**, and The percentage of deaths per million people is **0.20**.
 
 ```{r}
 cases_trend <- covid_tidy %>% 
@@ -79,7 +82,11 @@ cases_trend <- covid_tidy %>%
   kable_classic(full_width = FALSE)
 ```
 
-```{r}
+## COVID-19 Cases in Poland
+
+Then we focus on the specific average daily counts of cases and deaths by each month and the trend of corresponding variables.
+
+```{r cases_trend, tab.cap="Wealth inequality between races is still rising, with the wealth gap far larger than the income gap."}
 cases_month <- covid_tidy %>% 
 mutate(month = format(as.Date(date), "%Y-%m")) %>% 
   select(month, new_cases, new_deaths) 
@@ -104,9 +111,9 @@ cases_trend <- left_join(cases_mean, sparkline_data, by = "month") %>%
   select(c(year, month, new_cases_avg, new_cases_line, new_deaths_avg, new_deaths_line)) %>% 
   datatable(escape = FALSE, 
             filter = 'top',
-            caption = htmltools::tags$caption("Monthly average statistics and monthly trends of new cases and new deaths in Poland"),
-            colnames = c("Year", "Month", "New Cases (monthly_avg)", "New Cases Trend (monthly)",
-                         "New Deaths (monthly_avg)", "New Deaths Trend (monthly)"),
+            caption = htmltools::tags$caption("Daily average statistics and monthly trends of new cases and new deaths in Poland"),
+            colnames = c("Year", "Month", "New Cases (daily_avg)", "New Cases Trend (monthly)",
+                         "New Deaths (daily_avg)", "New Deaths Trend (monthly)"),
             options = list(pageLength = 10,
                            columnDefs = list(list(className = 'dt-right', targets = 0:6)),
                            fnDrawCallback = htmlwidgets::JS(
@@ -120,7 +127,14 @@ function(){
 cases_trend
 ```
 
+From this table, the peaks of daily cases were in **November 2020** and **March 2021**, and the highest average number of daily cases in **November 2020** is **20936**. However, the highest average number of daily deaths is at **April 2021**, approximately at **482**. 
+
+According to the table above, we can see that the situation of COVID-19 in Poland declined from December 2020 to February 2021, but was followed by a repeat of the pandemic with monthly deaths surpassing the first wave. The main reasons for the resurgence of the pandemic are the re-emergence of the global outbreak since March 2021 and the emergence of multiple mutated strains in Europe. The Polish government extended the lockdown on March 15 in response to the worsening outbreak. The outbreak was brought under control in May, with the daily average number of new cases only 16.5% of April's, and the death toll halved.
+
+
 ### Numerical Summary Statistics
+
+This correlation table contains the correlation coefficients which can give a overview and supply parameter values for analysis. The numerical summary is shown below:
 
 ```{r}
 num_stats <- covid_tidy %>% 
@@ -136,13 +150,16 @@ num_stats <- covid_tidy %>%
 
   knitr::kable(num_stats, bootabs = TRUE,
                table.attr = "class='cor-table'",
-               caption = "Numerical summary statistics of new coronavirus cases and deaths dayly in Poland",
+               caption = "Numerical summary statistics of new coronavirus cases and deaths daily in Poland",
                align = "lrrrr") %>% 
   kable_styling() %>% 
+  column_spec(1:5, width = "90px") %>% 
   kable_classic(full_width = FALSE)
 ```
 
 ## Covid-19 Vaccination Status
+
+The Polish vaccination began on **28 December 2020**, and **36,232,370** doses had been administered by 30 August 2020.
 
 ```{r}
 Vaccine <- covid_tidy %>% 
@@ -151,16 +168,23 @@ Vaccine <- covid_tidy %>%
                              "2021-07-31", "2021-08-30"))) %>% 
   select(date, total_vaccinations, total_vaccinations_per_hundred, 
          people_fully_vaccinated, people_fully_vaccinated_per_hundred) %>% 
-datatable(escape = FALSE,
-          filter = 'top',
-          caption = htmltools::tags$caption("Vaccination Status monthly in Poland"),
-          options = list(pageLength = 5,
-                         class = "hover"),
-          colnames = c("Date", "Total Vaccinations", "Total Vaccinations(100)", 
-                       "People Vaccinated", "People Vaccinated(100)")
-          )
-Vaccine
+  mutate(total_vaccinations = scales::comma(total_vaccinations),
+         people_fully_vaccinated = scales::comma(people_fully_vaccinated))
+gt(Vaccine) %>% 
+  
+  tab_header(title = "Vaccination Status in Poland",
+             subtitle = "Cumulative counts of vaccination administered by each month") %>% 
+  tab_source_note(md("Source: Our World In Data https://ourworldindata.org/coronavirus")) %>% 
+  cols_label(date = "Date",
+             total_vaccinations = "Total Vaccinations",
+             total_vaccinations_per_hundred = "Total Vaccinations(100)",
+             people_fully_vaccinated = "People Vaccinated",
+             people_fully_vaccinated_per_hundred = "People Vaccinated(100)") %>% 
+  cols_align(align = "right")
 ```
+
+
+The number of vaccinations in Poland continues to increase. The total cumulative dose of vaccine per 100 people reached **95**. and **half** of every 100 people have already been vaccinated. The duration of the second wave was shortened by continued vaccination, bringing the outbreak under control.
 
 # References
 
@@ -177,5 +201,7 @@ Yihui Xie, Joe Cheng and Xianying Tan (2021). DT: A Wrapper of the JavaScript Li
 Ramnath Vaidyanathan, Kent Russell and Gareth Watts (2016). sparkline: 'jQuery' Sparkline 'htmlwidget'. R package version 2.0. https://CRAN.R-project.org/package=sparkline
 
 WHO COVID-19 Dashboard. Geneva: World Health Organization, 2020. Available online: https://covid19.who.int/ 
+
+Hannah Ritchie, Edouard Mathieu, Lucas Rodés-Guirao, Cameron Appel, Charlie Giattino, Esteban Ortiz-Ospina, Joe Hasell, Bobbie Macdonald, Diana Beltekian and Max Roser (2020) - "Coronavirus Pandemic (COVID-19)". Published online at OurWorldInData.org. Retrieved from: 'https://ourworldindata.org/coronavirus' [Online Resource]
 
 Sharon Machlis (2018). How to add sparklines to R tables. InfoWorld. https://www.infoworld.com/article/3318222/how-to-add-sparklines-to-r-tables.html
