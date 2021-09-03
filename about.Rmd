@@ -1,7 +1,13 @@
 ---
-title: "About this blog"
-description: |
-  Some additional details about the blog
+title: "Yalong(Lennon) Liu"
+image: 
+output:
+  postcards::trestles
+links:
+  - label: GitHub
+    url: "https://github.com/Lennon-Liu-417"
+  - label: Email
+    url: "yliu04064@student.monashl.edu"
 ---
 
 ```{r setup, include=FALSE}
