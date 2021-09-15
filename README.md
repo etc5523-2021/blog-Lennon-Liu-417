@@ -2,7 +2,7 @@
 
 
 This is the blog of [Yalong Liu].
-The URL of this blog is [https://yalongliu.netlify.app/posts/2021-09-01-covid-19-in-poland/].
+The URL of this blog is [https://yalongliu-blog2.netlify.app/blog.html].
 
 ## Blog Post 1
 
@@ -28,7 +28,7 @@ This assessment is due Fri Sep 17 2021 11.55PM AEST.
 
 My selected country is [South Africa].
 
-The relevant blog post for this assessment is in [covid-19-in-south africa].html
+The relevant blog post for this assessment is in [covid-19-in-south-africa].html
 
 - [ ] Selected a new country
 - [ ] Data Story 1
