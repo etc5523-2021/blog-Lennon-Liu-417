@@ -23,7 +23,7 @@ library(gt)
 
 
 ```{r}
-covid_raw <- read_csv(here::here("data/owid-covid-data.csv"))
+covid_raw <- read_csv(here::here("data/owid-covid-data-8-31.csv"))
 ```
 
 # Data Description
@@ -85,7 +85,7 @@ cases_trend <- covid_tidy %>%
 
 Then we focus on the specific average daily counts of cases and deaths by each month and the trend of corresponding variables.
 
-```{r cases_trend, tab.cap="Wealth inequality between races is still rising, with the wealth gap far larger than the income gap."}
+```{r}
 cases_month <- covid_tidy %>% 
 mutate(month = format(as.Date(date), "%Y-%m")) %>% 
   select(month, new_cases, new_deaths) 

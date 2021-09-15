@@ -1,0 +1,304 @@
+---
+title: "COVID-19 in South Africa"
+description: |
+  This blog focuses on the situation of COVID-19 in South Africa as of August 31, 2021.
+author:
+  - name: Yalong Liu
+    url: https://yalongliu.netlify.app/about.html
+date: 09-14-2021
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(lubridate)
+library(kableExtra)
+library(cowplot)
+library(graphics)
+library(DT)
+library(sparkline)
+library(plotly)
+library(rnaturalearth)
+library(sf)
+library(gganimate)
+library(knitr)
+```
+
+```{r image, fig.align='center', out.height='50%', out.width='50%'}
+knitr::include_graphics("https://png.pngitem.com/pimgs/s/226-2268532_where-is-south-africa-located-large-map-world.png")
+```
+
+```{r}
+covid_raw <- read_csv(here::here("data/owid-covid-data-9-13.csv"))
+```
+# Introduction
+
+As a global public health infectious disease, COVID-19 has continued to affect people's normal life and even life and property since the end of 2019. South Africa has been the hardest hit country in Africa by the coronavirus pandemic, and as of September 13th, total number of cases has exceeded 2,860,000 and 85,002 cases have died.
+
+# Data Description
+
+```{r}
+# Data wrangling
+covid_africa_tidy <- covid_raw %>% 
+  filter(continent == "Africa") %>% 
+  select(c(location, date, total_cases, new_cases,
+           new_deaths, total_vaccinations_per_hundred, 
+           people_vaccinated_per_hundred, 
+           people_fully_vaccinated_per_hundred))
+
+# Test country names
+countries <- ne_countries(returnclass = "sf", scale = "medium") %>% 
+  select(admin, continent) %>% 
+  filter(continent == "Africa")
+
+country_test <- anti_join(covid_africa_tidy, countries, by = c("location" = "admin"))
+
+covid_africa_tidy <- covid_africa_tidy %>% 
+  mutate(location = recode(location,
+                          "Congo" = "Republic of Congo",
+                          "Cote d'Ivoire" = "Ivory Coast",
+                          "Democratic Republic of Congo"= "Democratic Republic of the Congo",
+                          "Eswatini" = "Swaziland",
+                          "Guinea-Bissau" = "Guinea Bissau",
+                          "Mauritius" = "Mauritania",
+                          "Tanzania" = "United Republic of Tanzania"))
+covid_africa <- left_join(countries, covid_africa_tidy,
+                          by = c("admin" = "location")) %>% 
+  select(!continent) %>% 
+  rename(country = "admin")
+
+covid_sa <- covid_africa %>% 
+  filter(country == "South Africa")
+```
+
+Source of the Data: This report use one COVID-19 data from [Our World in Data](https://ourworldindata.org/coronavirus/country/south-africa).
+
+The raw data contains **62** variables, including daily number of COVID-19 cases, deaths and vaccine utilisation recorded by countries. This blog uses South Africa as the research object to explore the infection and death of the new coronavirus in South Africa, as well as the subsequent vaccination situation. The research timeline is from the first infection at **`r covid_sa$date[1]`** to **`r covid_sa$date[585]`**. The details of the tidy dataset is shown below:
+
+# Data Dictionary
+
+```{r}
+desc <- data.frame(Number = c(1:9), Variable = names(covid_africa),
+                   Type = c("character", "date", "double", "double", "double", "double", "double", 
+                            "double", "S3: sfc_MULTIPOLYGON"),
+                   Description = c("The country in Africa",
+                                   "The observation date", 
+                                   "Total number of confirmed cases of COVID-19", 
+                                   "The number of new cases per day", 
+                                   "Total number of new deaths per day", 
+                                   "Cumulative total vaccine doses administered per 100 population", 
+                                   "Cumulative persons vaccinated with at least one dose per 100 population",
+                                   "Cumulative number of persons fully vaccinated per 100 population",
+                                   "Country Polygons"))
+knitr::kable(desc, caption = "Data Description of coronavirus dataset") %>% 
+  row_spec(0, color = "white", background = " #801500") %>% 
+  kable_styling(c("hover", "striped"))
+```
+
+# Analysis and Exploration
+
+Firstly, The distribution of total cases in each country in Africa is shown by using a map below.
+
+```{r}
+map_data <- covid_africa %>% 
+  separate(col = "date", into = c("year", "month", "day"), sep = "-") %>% 
+  group_by(year, month) %>% 
+  filter(day == max(day)) %>% 
+  unite(date, c(year, month))
+map <- map_data %>% 
+  ggplot()+
+  geom_sf(aes(fill = total_cases)) +
+  scale_fill_gradient(low = "#B5B5B3", high = "#99001A",
+                      na.value="white", guide = "colourbar",
+                      aesthetics = "fill") +
+  labs(title = "Number of total cases in Africa",
+       subtitle = "Date: {current_frame}",
+       fill = "Total Cases") +
+  theme_void() +
+  theme(legend.position = "right") +
+  transition_manual(date)
+map
+```
+
+From the above map, it is clear to see the serious situation of COVID-19 in South Africa. Then **Morocco and Tunisia** followed, the total cases in **Morocco** has exceeded **900,000**, and Tunisia is approaching 700,000. Conversely, countries located in the upper-middle and upper parts of the African plate have a lower total number of confirmed cases, such as Mali, Niger, Chad, Sudan.
+
+## COVID-19 Cases in South Africa
+
+```{r fg21, fig.height=3, fig.width = 8}
+covid_sa_trend_data <- covid_sa %>% 
+  select(country, date, new_cases, new_deaths) %>% 
+  filter(!is.na("daily_count"))
+
+covid_sa_week_data <- covid_sa %>% 
+  mutate(week = floor_date(date, "week")) %>% 
+  group_by(week) %>% 
+  summarise(new_cases = mean(new_cases),
+            new_deaths = mean(new_deaths))
+
+fg21 <- covid_sa_trend_data %>% 
+  ggplot(aes(x = date,
+             y = new_cases)) +
+  geom_col(fill = "#B5B5B3")+
+  geom_line(data = covid_sa_week_data, aes(x = week, y = new_cases),
+            color = "#99001A",size = 1)+
+  theme_minimal()+
+  labs(title = "Trend of daily & 7-day average cases",
+       x = "Date",
+       y = "Number of daily cases")+
+  annotate("text",
+           x = as.Date("2021-07-05"),
+           y = 23000,
+           label = "daily cases",
+           color = "#5C5C5C")+
+  annotate("text",
+           x = as.Date("2020-04-05"),
+           y = 6000,
+           label = "7-day average cases",
+           color = "#99001A")
+ggplotly(fg21)
+```
+
+
+```{r fg22, fig.height=3, fig.width = 8}
+fg22 <- covid_sa_trend_data %>% 
+  ggplot(aes(x = date,
+             y = new_deaths)) +
+  geom_col(fill = "#B5B5B3")+
+  geom_line(data = covid_sa_week_data, aes(x = week, y = new_deaths),
+            color = "#99001A",size = 1)+
+  theme_minimal()+
+  labs(title = "Trend of daily & 7-day average deaths", x = "Date",
+       y = "Number of daily deaths")+
+  annotate("text",
+           x = as.Date("2021-01-25"),
+           y = 750,
+           label = "daily deaths",
+           color = "#5C5C5C")+
+  annotate("text",
+           x = as.Date("2020-04-05"),
+           y = 150,
+           label = "7-day average deaths",
+           color = "#99001A")
+ggplotly(fg22)
+```
+
+From the above two figures, it is found that the COVID-19 outbreak began in March 2020 in Africa, and there have been three peak values in cases so far. The **first peak** was in **mid-July 2020**, and the **highest number of new cases** in a **single day** was **13,944**. At the same time, the highest number of **deaths** in a single day was **572**. Due to the influence of global variant strains, the number of cases and deaths in South Africa peaked again in January 2020 and surpassed the first. The average number of deaths per week has reached the first peak of the maximum number of deaths in a single day. Although the number of daily cases and weekly average cases in the third peak exceeded the previous two times, the mortality rate was controlled to some extent. The **average weekly deaths** was **400**, well **below the second peak of 575**. This suggests that vaccines and control measures have improved the cure rate.
+
+## Covid-19 Vaccination Status
+
+```{r}
+covid_vaccine <- covid_africa_tidy %>% 
+  filter(location == "South Africa") %>% 
+  mutate(date = format(as.Date(date), "%Y-%m")) %>% 
+  select(date, people_vaccinated_per_hundred, people_fully_vaccinated_per_hundred) 
+  
+vaccine_mean <- covid_vaccine %>% 
+  group_by(date) %>% 
+  summarise(people_vaccinated_avg = round(mean(people_vaccinated_per_hundred, na.rm = TRUE), 2),
+            fully_vaccinated_avg = round(mean(people_fully_vaccinated_per_hundred, na.rm = TRUE), 2)) %>% 
+  filter(!is.na(people_vaccinated_avg))
+
+sparkline_data <- covid_vaccine %>% 
+  filter(!is.na(people_vaccinated_per_hundred)) %>% 
+    group_by(date) %>% 
+  summarise(people_vaccinated_line = spk_chr(people_vaccinated_per_hundred,
+                                             type = "line", chartRangeMin = 0,
+                                             chartRangeMax = max(people_vaccinated_per_hundred)),
+            fully_vaccinated_line = spk_chr(people_fully_vaccinated_per_hundred,
+                                            type = "line", chartRangeMin = 0,
+                                             chartRangeMax = max(people_fully_vaccinated_per_hundred)))
+
+vaccine_trend <- left_join(vaccine_mean, sparkline_data, by = "date") %>% 
+  separate(col = date,
+  into = c("year", "month"), "-") %>% 
+  mutate(year = as.double(year),
+         month = as.double(month)) %>%
+  select(c(year, month, people_vaccinated_avg, people_vaccinated_line,
+           fully_vaccinated_avg, fully_vaccinated_line)) %>% 
+  datatable(escape = FALSE, 
+            filter = 'top',
+            caption = htmltools::tags$caption("Daily average statistics and monthly trends of vaccination per 100 in South Africa"),
+            colnames = c("Year", "Month", "At least one dose (daily_avg)", "At least one dose trend (monthly)",
+                         "Fully vaccinated (daily_avg)", "Fully vaccinated trend (monthly)"),
+            options = list(pageLength = 10,
+                           columnDefs = list(list(className = 'dt-right', targets = 0:6)),
+                           fnDrawCallback = htmlwidgets::JS(
+  '
+function(){
+  HTMLWidgets.staticRender();
+}
+'
+))) %>% 
+  spk_add_deps()
+vaccine_trend
+```
+
+South Africa’s vaccination start time is February 2021. From the trend chart in the table, it can be seen that the trend growth is relatively slow whether it is at least one injection or the vaccination has been completed. Due to the shortage of vaccines, the vaccination rate for at least one injection in a single day is **17.06%**, and the full vaccinated vaccination rate is only **11.27%**.
+
+```{r fg2, fig.align = "center", fig.height=5, fig.width = 8}
+fg2 <- covid_sa %>% 
+  ggplot(aes(x = date))+
+  geom_area(aes(y = total_vaccinations_per_hundred), fill = "#E3E3E3")+
+  geom_area(aes(y = people_vaccinated_per_hundred), fill = "#B35900")+
+  geom_area(aes(y = people_fully_vaccinated_per_hundred), fill = "#99001A")+
+  theme_minimal()+
+  labs(title = "Trend of total vaccinations and people vaccinated per hundred",
+       x = "Date",
+       y = "Number of people vaccinated")+
+  annotate("text",
+           x = as.Date("2021-08-15"),
+           y = 2,
+           label = "fully vaccinated") +
+  annotate("text",
+           x = as.Date("2021-07-07"),
+           y = 5,
+           label = "at least 1 dose") +
+  annotate("text",
+           x = as.Date("2021-08-08"),
+           y = 18,
+           label = "total vaccinations")
+ggplotly(fg2)
+```
+
+The figure above shows that the number of people receiving at least one dose of the vaccine has increased significantly since the end of May 2021, and the growth is steady. Additionally, the number of people fully vaccinated had a sharp increase in mid-July 2021, and the growth rate of the number of people who have received the vaccine after this is very similar to the rate of at least one dose. At the same time, because of the gradual vaccination, the mortality rate of the third outbreak in South Africa has been greatly reduced.
+
+# References
+
+Hannah Ritchie, Edouard Mathieu, Lucas Rodés-Guirao, Cameron Appel, Charlie Giattino, Esteban Ortiz-Ospina, Joe Hasell, Bobbie Macdonald, Diana Beltekian and Max Roser (2020) - "Coronavirus Pandemic (COVID-19)". Published online at OurWorldInData.org. Retrieved from: 'https://ourworldindata.org/coronavirus' [Online Resource]
+
+Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software,4(43), 1686, https://doi.org/10.21105/joss.01686
+
+Garrett Grolemund, Hadley Wickham (2011). Dates and Times Made Easy with lubridate. Journal of Statistical Software, 40(3), 1-25. URL https://www.jstatsoft.org/v40/i03/.
+
+Hao Zhu (2021). kableExtra: Construct Complex Table with 'kable' and Pipe Syntax. R package version 1.3.4. https://CRAN.R-project.org/package=kableExtra
+
+Claus O. Wilke (2020). cowplot: Streamlined Plot Theme and Plot Annotations for 'ggplot2'. R package version 1.1.1. https://CRAN.R-project.org/package=cowplot
+
+R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
+
+Yihui Xie, Joe Cheng and Xianying Tan (2021). DT: A Wrapper of the JavaScript Library 'DataTables'. R package version 0.18. https://CRAN.R-project.org/package=DT
+
+Ramnath Vaidyanathan, Kent Russell and Gareth Watts (2016). sparkline: 'jQuery' Sparkline 'htmlwidget'. R package version 2.0. https://CRAN.R-project.org/package=sparkline
+
+C. Sievert. Interactive Web-Based Data Visualization with R, plotly, and shiny. Chapman and Hall/CRC Florida, 2020.
+
+Andy South (2017). rnaturalearth: World Map Data from Natural Earth. R package version 0.1.0. https://CRAN.R-project.org/package=rnaturalearth
+
+Pebesma, E., 2018. Simple Features for R: Standardized Support for Spatial Vector Data. The R Journal 10 (1), 439-446, https://doi.org/10.32614/RJ-2018-009
+
+Thomas Lin Pedersen and David Robinson (2020). gganimate: A Grammar of Animated Graphics. R package version 1.0.7. https://CRAN.R-project.org/package=gganimate
+
+
+
+
+
+
+
+
+
+
+
+
